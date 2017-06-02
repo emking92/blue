@@ -133,6 +133,23 @@ func buildImmediateArgument(pgm *programBuilder, this argument) (ins Instruction
 }
 
 func buildImmediatePointerArgument(pgm *programBuilder, this argument) (ins Instruction, err error) {
+	argInt, err := strconv.Atoi(strings.Trim(this.argStr, "[]"))
+	if err == strconv.ErrRange {
+		err = fmt.Errorf("immediate pointer value out of int32 range: %s", this.argStr)
+		return
+	} else if err != nil {
+		panic(err)
+	}
+
+	switch this.index {
+	case 0:
+		ins = Instruction{Addr: argInt, Wr: 1, Mar: 2}
+	case 1:
+		ins = Instruction{Addr: argInt, Rd: 1, Mar: 2, Amux: 1}
+	case 2:
+		panic("Invalid argument")
+	}
+
 	return
 }
 
@@ -156,6 +173,22 @@ func buildRegisterArgument(pgm *programBuilder, this argument) (ins Instruction,
 }
 
 func buildRegisterPointerArgument(pgm *programBuilder, this argument) (ins Instruction, err error) {
+	reg := strings.ToLower(strings.Trim(this.argStr, "[]"))
+	regByte, ok := registerMap[reg]
+	if !ok {
+		err = fmt.Errorf("undefined register pointer: %s", this.argStr)
+		return
+	}
+
+	switch this.index {
+	case 0:
+		ins = Instruction{B: regByte, Wr: 1, Mar: 1}
+	case 1:
+		ins = Instruction{B: regByte, Rd: 1, Mar: 1, Amux: 1}
+	case 2:
+		panic("Invalid argument")
+	}
+
 	return
 }
 

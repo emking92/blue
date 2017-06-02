@@ -22,6 +22,7 @@ var opBuildStrategies = map[string]instructionBuildStrategy{
 			[]string{"xx", "[123]"},
 			[]string{"[123]", "xx"},
 			[]string{"[xx]", "xx"},
+			[]string{"[xx]", "123"},
 		),
 	},
 	"var": instructionBuildStrategy{
@@ -54,9 +55,10 @@ var (
 	aluInstructionBuildStrategy = instructionBuildStrategy{
 		typeSignatures: createSignatureGroup(
 			[]string{"xx", "xx", "xx"},
-			[]string{"xx", "xx", "[123]"},
+			[]string{"xx", "[123]", "xx"},
 			[]string{"xx", "xx", "123"},
 			[]string{"[123]", "xx", "xx"},
+			[]string{"[123]", "xx", "123"},
 		),
 		build: instructionBuilderALU,
 	}

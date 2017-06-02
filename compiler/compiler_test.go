@@ -12,12 +12,22 @@ import (
 func TestMOV(t *testing.T) {
 	source := `
 	MOV ax, bx
-	MOV cx, 222
+	MOV cx, 101
+	MOV dx, [102]
+	MOV [103], ex
+	MOV [ax], bx
+	MOV [cx], 104
+	MOV dx, [ex]
 	`
 
 	expected := []Instruction{
 		Instruction{Enc: 1, C: 10, A: 11},
-		Instruction{Enc: 1, C: 12, Cmux: 1, Imm: 222},
+		Instruction{Enc: 1, C: 12, Cmux: 1, Imm: 101},
+		Instruction{Enc: 1, C: 13, Amux: 1, Mar: 2, Addr: 102, Rd: 1},
+		Instruction{Mar: 2, Addr: 103, Wr: 1, A: 14},
+		Instruction{B: 10, Wr: 1, Mar: 1, A: 11},
+		Instruction{B: 12, Wr: 1, Mar: 1, Cmux: 1, Imm: 104},
+		Instruction{Enc: 1, C: 13, B: 14, Rd: 1, Mar: 1, Amux: 1},
 	}
 
 	testBuild(t, source, expected)
@@ -37,6 +47,9 @@ func TestALU(t *testing.T) {
 	SAR ax, bx, cx
 	
 	ADD ax, bx, 123
+	MUL cx, [124], dx
+	DIV [125], ex, fx
+	MOD [126], ax, 127
 	`
 
 	expected := []Instruction{
@@ -51,6 +64,9 @@ func TestALU(t *testing.T) {
 		Instruction{Enc: 1, A: 11, B: 12, C: 10, Alu: 9},
 		Instruction{Enc: 1, A: 11, B: 12, C: 10, Alu: 10},
 		Instruction{Enc: 1, A: 11, Bmux: 1, C: 10, Alu: 1, Imm: 123},
+		Instruction{Enc: 1, B: 13, C: 12, Alu: 3, Addr: 124, Rd: 1, Mar: 2, Amux: 1},
+		Instruction{Addr: 125, Wr: 1, Mar: 2, A: 14, B: 15, Alu: 4},
+		Instruction{Addr: 126, Wr: 1, Mar: 2, A: 10, Imm: 127, Bmux: 1, Alu: 5},
 	}
 
 	testBuild(t, source, expected)
