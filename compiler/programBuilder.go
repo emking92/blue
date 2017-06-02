@@ -7,13 +7,12 @@ import (
 )
 
 type programBuilder struct {
-	instructions             []Instruction
-	labels                   map[string]int
-	variables                utils.StrSubstititor
-	nextWordAddress          int
-	currentLineNumber        int
-	currentInstructionNumber int
-	errs                     []string
+	instructions      []Instruction
+	labels            map[string]int
+	variables         utils.StrSubstititor
+	nextWordAddress   int
+	currentLineNumber int
+	errs              []string
 }
 
 func (pgm *programBuilder) init() {
@@ -53,10 +52,7 @@ func (pgm *programBuilder) compileErrorString(message string, args ...interface{
 }
 
 func (pgm *programBuilder) buildInstruction(parts codeParts) {
-	if len(parts.label) > 0 {
-		pgm.setLabelLine(parts.label, pgm.currentInstructionNumber)
-	}
-
+	pgm.currentLineNumber = parts.lineNumber
 	op := strings.ToLower(parts.op)
 
 	strategy, strategyOk := opBuildStrategies[op]
@@ -73,16 +69,15 @@ func (pgm *programBuilder) buildInstruction(parts codeParts) {
 		argCount = 1
 	}
 
-	expandedArgStrs := make([]string, argCount)
 	args := make(argumentGroup, argCount)
 
 	for i := 0; i < argCount; i++ {
 		argStr, err := pgm.variables.Expand(parts.args[i])
+
 		if err != nil {
 			pgm.compileErrorString(err.Error())
 			continue
 		}
-		expandedArgStrs[i] = argStr
 
 		args[i], err = pgm.parseInstructionArgument(argStr, i)
 		if err != nil {

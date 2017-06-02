@@ -21,7 +21,7 @@ var (
 
 func init() {
 	var err error
-	lineRegex, err = regexp.Compile(`^\s*(\w[\w\d+]*\s*:)?\s*([A-Za-z]+)\s+([\w\d\[\]\$]+)(\s*,\s*([\w\d\[\]\$]+)(\s*,\s*([\w\d\[\]\$]+))?)?\s*(;.*)?$`)
+	lineRegex, err = regexp.Compile(`^\s*(?:(\w[\w\d+]*\s*):)?\s*([A-Za-z]+)\s+([\w\d\[\]\$]+)(\s*,\s*([\w\d\[\]\$]+)(\s*,\s*([\w\d\[\]\$]+))?)?\s*(;.*)?$`)
 	lineRegexIndexLabel = 1
 	lineRegexIndexOp = 2
 	lineRegexIndexArg1 = 3
@@ -36,9 +36,10 @@ func init() {
 }
 
 type codeParts struct {
-	label string
-	op    string
-	args  []string
+	lineNumber int
+	label      string
+	op         string
+	args       []string
 }
 
 func BuildSource(source io.Reader) (instructions []Instruction, err error) {
@@ -50,18 +51,20 @@ func BuildSource(source io.Reader) (instructions []Instruction, err error) {
 	pgm := programBuilder{}
 	pgm.init()
 
-	//	syntaxErrors := []error{}
+	var parsedCode []codeParts
+	lineNumber := 0
+	instructionIndex := -1
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		pgm.currentLineNumber++
+		lineNumber++
 
 		//Ignore empty lines and lines with only comments
 		if ignoredLineRegex.MatchString(line) {
 			continue
 		}
 
-		pgm.currentInstructionNumber++
+		instructionIndex++
 
 		matches := lineRegex.FindStringSubmatch(line)
 		if matches == nil {
@@ -70,20 +73,28 @@ func BuildSource(source io.Reader) (instructions []Instruction, err error) {
 		}
 
 		parts := codeParts{
-			label: matches[lineRegexIndexLabel],
-			op:    matches[lineRegexIndexOp],
+			lineNumber: lineNumber,
+			label:      matches[lineRegexIndexLabel],
+			op:         matches[lineRegexIndexOp],
 			args: []string{
 				matches[lineRegexIndexArg1],
 				matches[lineRegexIndexArg2],
 				matches[lineRegexIndexArg3],
 			},
 		}
+		parsedCode = append(parsedCode, parts)
 
-		pgm.buildInstruction(parts)
+		if len(parts.label) > 0 {
+			pgm.setLabelLine(parts.label, instructionIndex)
+		}
 
 	}
 	if err := scanner.Err(); err != nil {
 		return nil, err
+	}
+
+	for _, codeLines := range parsedCode {
+		pgm.buildInstruction(codeLines)
 	}
 
 	if pgm.errs != nil {

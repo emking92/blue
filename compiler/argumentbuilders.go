@@ -13,19 +13,19 @@ type argument struct {
 	argStr    string
 	index     int
 	argType   argumentType
-	buildFunc func(arg argument) (Instruction, error)
+	buildFunc func(pgm *programBuilder, arg argument) (Instruction, error)
 }
 
 type argumentGroup []argument
 
 const (
-	argumentTypeUndefined        = argumentType("Undefined")
-	argumentTypeImmediate        = argumentType("Immediate")
-	argumentTypeImmediatePointer = argumentType("[Immediate]")
-	argumentTypeRegister         = argumentType("Register")
-	argumentTypeRegisterPointer  = argumentType("[Register]")
-	argumentTypePort             = argumentType("Port")
-	argumentTypeLabel            = argumentType("Label")
+	argumentTypeUndefined        = argumentType("undefined")
+	argumentTypeImmediate        = argumentType("immediate")
+	argumentTypeImmediatePointer = argumentType("[immediate]")
+	argumentTypeRegister         = argumentType("register")
+	argumentTypeRegisterPointer  = argumentType("[register]")
+	argumentTypePort             = argumentType("port")
+	argumentTypeLabel            = argumentType("label")
 )
 
 var (
@@ -52,7 +52,7 @@ func init() {
 }
 
 func (arg argument) build(pgm *programBuilder) (ins Instruction) {
-	ins, err := arg.buildFunc(arg)
+	ins, err := arg.buildFunc(pgm, arg)
 	if err != nil {
 		pgm.compileError(err)
 	}
@@ -72,7 +72,7 @@ func (group argumentGroup) types() (types []argumentType) {
 func (group argumentGroup) String() string {
 	strs := make([]string, len(group))
 	for i, arg := range group {
-		strs[i] = fmt.Sprintf("%s (type %s)", arg.argStr, arg.argType)
+		strs[i] = fmt.Sprintf("%s (%s)", arg.argStr, arg.argType)
 	}
 
 	return fmt.Sprintf("{%s}", strings.Join(strs, ", "))
@@ -111,7 +111,7 @@ func (pgm programBuilder) parseInstructionArgument(argStr string, index int) (ar
 	return arg, nil
 }
 
-func buildImmediateArgument(this argument) (ins Instruction, err error) {
+func buildImmediateArgument(pgm *programBuilder, this argument) (ins Instruction, err error) {
 	argInt, err := strconv.Atoi(this.argStr)
 	if err == strconv.ErrRange {
 		err = fmt.Errorf("immediate value out of int32 range: %s", this.argStr)
@@ -132,11 +132,11 @@ func buildImmediateArgument(this argument) (ins Instruction, err error) {
 	return
 }
 
-func buildImmediatePointerArgument(this argument) (ins Instruction, err error) {
+func buildImmediatePointerArgument(pgm *programBuilder, this argument) (ins Instruction, err error) {
 	return
 }
 
-func buildRegisterArgument(this argument) (ins Instruction, err error) {
+func buildRegisterArgument(pgm *programBuilder, this argument) (ins Instruction, err error) {
 	regByte, ok := registerMap[strings.ToLower(this.argStr)]
 	if !ok {
 		err = fmt.Errorf("undefined register: %s", this.argStr)
@@ -155,14 +155,27 @@ func buildRegisterArgument(this argument) (ins Instruction, err error) {
 	return
 }
 
-func buildRegisterPointerArgument(this argument) (ins Instruction, err error) {
+func buildRegisterPointerArgument(pgm *programBuilder, this argument) (ins Instruction, err error) {
 	return
 }
 
-func buildLabelArgument(this argument) (ins Instruction, err error) {
+func buildLabelArgument(pgm *programBuilder, this argument) (ins Instruction, err error) {
+	if this.index != 0 {
+		panic("Invalid argument")
+	}
+
+	label := this.argStr
+	labelLine, ok := pgm.getLabelLine(label)
+	if !ok {
+		err = fmt.Errorf(`undefined label "%s"`, label)
+		ins = Instruction{}
+		return
+	}
+
+	ins = Instruction{Addr: labelLine}
 	return
 }
 
-func buildPortArgument(this argument) (ins Instruction, err error) {
+func buildPortArgument(pgm *programBuilder, this argument) (ins Instruction, err error) {
 	return
 }

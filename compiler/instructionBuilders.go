@@ -32,6 +32,12 @@ var opBuildStrategies = map[string]instructionBuildStrategy{
 			[]string{"undefined", "123"},
 		),
 	},
+	"jmp": instructionBuildStrategy{
+		build: instructionBuilderJMP,
+		typeSignatures: createSignatureGroup(
+			[]string{"label"},
+		),
+	},
 	"add": aluInstructionBuildStrategy,
 	"sub": aluInstructionBuildStrategy,
 	"mul": aluInstructionBuildStrategy,
@@ -120,4 +126,11 @@ func instructionBuilderVAR(pgm *programBuilder, op string, args []argument) Inst
 	}
 
 	return joinInstructions(toInstruction, fromInstruction)
+}
+
+func instructionBuilderJMP(pgm *programBuilder, op string, args []argument) Instruction {
+	cond := Instruction{Cond: 3}
+	addr := args[0].build(pgm)
+
+	return joinInstructions(cond, addr)
 }

@@ -70,6 +70,28 @@ func TestVAR(t *testing.T) {
 	testBuild(t, source, expected)
 }
 
+func TestJMP(t *testing.T) {
+	source := `
+	foo:MOV ax, 0
+	
+	MOV bx, 0
+	bar:MOV cx, 0
+	
+	JMP foo
+	JMP bar
+	`
+
+	expected := []Instruction{
+		Instruction{Enc: 1, C: 10, Cmux: 1},
+		Instruction{Enc: 1, C: 11, Cmux: 1},
+		Instruction{Enc: 1, C: 12, Cmux: 1},
+		Instruction{Cond: 3, Addr: 0},
+		Instruction{Cond: 3, Addr: 2},
+	}
+
+	testBuild(t, source, expected)
+}
+
 func testBuild(t *testing.T, source string, expected []Instruction) {
 	reader := bytes.NewReader([]byte(source))
 
