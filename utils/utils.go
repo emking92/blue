@@ -16,7 +16,7 @@ func init() {
 	varRegex, _ = regexp.Compile(`(?:^|\W)\$([A-Za-z_][A-Za-z0-9_]*)(?:\b|$)`)
 }
 
-func (vr *StrSubstititor) CreateVariable(v string, value string) {
+func (vr StrSubstititor) CreateVariable(v string, value string) {
 	reg := fmt.Sprintf(`\$%s\b`, v)
 
 	varRegex, err := regexp.Compile(reg)
@@ -24,7 +24,7 @@ func (vr *StrSubstititor) CreateVariable(v string, value string) {
 		panic(err)
 	}
 
-	(*vr)[v] = func(str string) string {
+	vr[v] = func(str string) string {
 		return varRegex.ReplaceAllLiteralString(str, value)
 	}
 }
@@ -55,4 +55,9 @@ func (vr StrSubstititor) Expand(str string) (out string, err error) {
 	}
 
 	return
+}
+
+func (vr StrSubstititor) IsVarDefined(str string) bool {
+	_, ok := vr[str]
+	return ok
 }

@@ -56,6 +56,20 @@ func TestALU(t *testing.T) {
 	testBuild(t, source, expected)
 }
 
+func TestVAR(t *testing.T) {
+	source := `
+	VAR foo, 123
+	VAR bar, ax
+	`
+
+	expected := []Instruction{
+		Instruction{Mbr: 1, Mar: 2, Wr: 1, Addr: 16, Cmux: 1, Imm: 123},
+		Instruction{Mbr: 1, Mar: 2, Wr: 1, Addr: 17, A: 10},
+	}
+
+	testBuild(t, source, expected)
+}
+
 func testBuild(t *testing.T, source string, expected []Instruction) {
 	reader := bytes.NewReader([]byte(source))
 

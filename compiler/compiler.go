@@ -48,6 +48,7 @@ func BuildSource(source io.Reader) (instructions []Instruction, err error) {
 	}
 
 	pgm := programBuilder{}
+	pgm.init()
 
 	//	syntaxErrors := []error{}
 

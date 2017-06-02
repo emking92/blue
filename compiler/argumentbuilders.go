@@ -19,7 +19,7 @@ type argument struct {
 type argumentGroup []argument
 
 const (
-	argumentTypeUnknown          = argumentType("Unknown")
+	argumentTypeUndefined        = argumentType("Undefined")
 	argumentTypeImmediate        = argumentType("Immediate")
 	argumentTypeImmediatePointer = argumentType("[Immediate]")
 	argumentTypeRegister         = argumentType("Register")
@@ -105,7 +105,7 @@ func (pgm programBuilder) parseInstructionArgument(argStr string, index int) (ar
 		arg.buildFunc = buildLabelArgument
 
 	} else {
-		arg.argType = argumentTypeUnknown
+		arg.argType = argumentTypeUndefined
 	}
 
 	return arg, nil

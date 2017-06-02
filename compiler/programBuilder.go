@@ -10,6 +10,7 @@ type programBuilder struct {
 	instructions             []Instruction
 	labels                   map[string]int
 	variables                utils.StrSubstititor
+	nextWordAddress          int
 	currentLineNumber        int
 	currentInstructionNumber int
 	errs                     []string
@@ -17,6 +18,8 @@ type programBuilder struct {
 
 func (pgm *programBuilder) init() {
 	pgm.labels = make(map[string]int)
+	pgm.variables = make(utils.StrSubstititor)
+	pgm.nextWordAddress = 16
 }
 
 func (pgm *programBuilder) setLabelLine(label string, line int) {
@@ -31,6 +34,12 @@ func (pgm programBuilder) getLabelLine(label string) (line int, ok bool) {
 func (pgm programBuilder) isLabelDefined(label string) bool {
 	_, ok := pgm.labels[strings.ToLower(label)]
 	return ok
+}
+
+func (pgm *programBuilder) allocateWord() int {
+	next := pgm.nextWordAddress
+	pgm.nextWordAddress++
+	return next
 }
 
 func (pgm *programBuilder) compileError(err error) {
