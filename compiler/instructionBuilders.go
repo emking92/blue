@@ -49,6 +49,12 @@ var opBuildStrategies = map[string]instructionBuildStrategy{
 	"xor": aluInstructionBuildStrategy,
 	"sal": aluInstructionBuildStrategy,
 	"sar": aluInstructionBuildStrategy,
+	"je":  condJmpInstructionBuildStrategy,
+	"jne": condJmpInstructionBuildStrategy,
+	"jl":  condJmpInstructionBuildStrategy,
+	"jle": condJmpInstructionBuildStrategy,
+	"jg":  condJmpInstructionBuildStrategy,
+	"jge": condJmpInstructionBuildStrategy,
 }
 
 var (
@@ -62,6 +68,17 @@ var (
 		),
 		build: instructionBuilderALU,
 	}
+	condJmpInstructionBuildStrategy = instructionBuildStrategy{
+		typeSignatures: createSignatureGroup(
+			[]string{"label", "xx", "xx"},
+			[]string{"label", "xx", "123"},
+			[]string{"label", "[123]", "xx"},
+			[]string{"label", "[123]", "123"},
+			[]string{"label", "pp", "xx"},
+			[]string{"label", "pp", "123"},
+		),
+		build: instructionBuilderCondJMP,
+	}
 
 	aluOperationValues = map[string]byte{
 		"add": 1,
@@ -74,6 +91,16 @@ var (
 		"xor": 8,
 		"sal": 9,
 		"sar": 10,
+	}
+
+	condOperationValues = map[string]byte{
+		"je":  1,
+		"jne": 2,
+		"jl":  3,
+		"jg":  4,
+		"jle": 5,
+		"jge": 6,
+		"jmp": 7,
 	}
 
 	legalVariableNames   *regexp.Regexp
@@ -131,8 +158,17 @@ func instructionBuilderVAR(pgm *programBuilder, op string, args []argument) Inst
 }
 
 func instructionBuilderJMP(pgm *programBuilder, op string, args []argument) Instruction {
-	cond := Instruction{Cond: 3}
+	jmpInstruction := Instruction{Cond: condOperationValues[op]}
 	addr := args[0].build(pgm)
 
-	return joinInstructions(cond, addr)
+	return joinInstructions(jmpInstruction, addr)
+}
+
+func instructionBuilderCondJMP(pgm *programBuilder, op string, args []argument) Instruction {
+	jmpInstruction := Instruction{Alu: 2, Cond: condOperationValues[op]}
+	addr := args[0].build(pgm)
+	val1 := args[1].build(pgm)
+	val2 := args[2].build(pgm)
+
+	return joinInstructions(jmpInstruction, addr, val1, val2)
 }

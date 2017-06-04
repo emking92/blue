@@ -15,6 +15,7 @@ type Instruction struct {
 	B    byte
 	C    byte
 	Addr int
+	Bran int
 	Imm  int
 }
 
@@ -42,6 +43,7 @@ func joinInstructions(instructions ...Instruction) (out Instruction) {
 		setInstructionByteValueOnce(&out.B, instruction.B)
 		setInstructionByteValueOnce(&out.C, instruction.C)
 		setInstructionIntValueOnce(&out.Addr, instruction.Addr)
+		setInstructionIntValueOnce(&out.Bran, instruction.Bran)
 		setInstructionIntValueOnce(&out.Imm, instruction.Imm)
 	}
 

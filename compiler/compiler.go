@@ -85,6 +85,10 @@ func BuildSource(source io.Reader) (instructions []Instruction, err error) {
 		parsedCode = append(parsedCode, parts)
 
 		if len(parts.label) > 0 {
+			if _, ok := pgm.labels[strings.ToLower(parts.label)]; ok {
+				pgm.compileErrorString(`label already defined "%s"`, parts.label)
+				continue
+			}
 			pgm.setLabelLine(parts.label, instructionIndex)
 		}
 

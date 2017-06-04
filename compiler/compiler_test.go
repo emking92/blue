@@ -24,9 +24,9 @@ func TestMOV(t *testing.T) {
 		Instruction{Enc: 1, C: 10, A: 11},
 		Instruction{Enc: 1, C: 12, Cmux: 1, Imm: 101},
 		Instruction{Enc: 1, C: 13, Amux: 1, Mar: 2, Addr: 102, Rd: 1},
-		Instruction{Mar: 2, Addr: 103, Wr: 1, A: 14},
-		Instruction{B: 10, Wr: 1, Mar: 1, A: 11},
-		Instruction{B: 12, Wr: 1, Mar: 1, Cmux: 1, Imm: 104},
+		Instruction{Mar: 2, Addr: 103, Wr: 1, A: 14, Mbr: 1},
+		Instruction{B: 10, Wr: 1, Mar: 1, A: 11, Mbr: 1},
+		Instruction{B: 12, Wr: 1, Mar: 1, Cmux: 1, Imm: 104, Mbr: 1},
 		Instruction{Enc: 1, C: 13, B: 14, Rd: 1, Mar: 1, Amux: 1},
 	}
 
@@ -65,8 +65,8 @@ func TestALU(t *testing.T) {
 		Instruction{Enc: 1, A: 11, B: 12, C: 10, Alu: 10},
 		Instruction{Enc: 1, A: 11, Bmux: 1, C: 10, Alu: 1, Imm: 123},
 		Instruction{Enc: 1, B: 13, C: 12, Alu: 3, Addr: 124, Rd: 1, Mar: 2, Amux: 1},
-		Instruction{Addr: 125, Wr: 1, Mar: 2, A: 14, B: 15, Alu: 4},
-		Instruction{Addr: 126, Wr: 1, Mar: 2, A: 10, Imm: 127, Bmux: 1, Alu: 5},
+		Instruction{Addr: 125, Wr: 1, Mar: 2, A: 14, B: 15, Alu: 4, Mbr: 1},
+		Instruction{Addr: 126, Wr: 1, Mar: 2, A: 10, Imm: 127, Bmux: 1, Alu: 5, Mbr: 1},
 	}
 
 	testBuild(t, source, expected)
@@ -101,8 +101,54 @@ func TestJMP(t *testing.T) {
 		Instruction{Enc: 1, C: 10, Cmux: 1},
 		Instruction{Enc: 1, C: 11, Cmux: 1},
 		Instruction{Enc: 1, C: 12, Cmux: 1},
-		Instruction{Cond: 3, Addr: 0},
-		Instruction{Cond: 3, Addr: 2},
+		Instruction{Cond: 7, Bran: 0},
+		Instruction{Cond: 7, Bran: 2},
+	}
+
+	testBuild(t, source, expected)
+}
+
+func TestCondJMP(t *testing.T) {
+	source := `
+	label0:MOV ax, 0
+	label1:MOV ax, 0
+	label2:MOV ax, 0
+	label3:MOV ax, 0
+	label4:MOV ax, 0
+	label5:MOV ax, 0
+	
+	JE label0, ax, bx
+	JNE label1, ax, bx
+	JL label2, ax, bx
+	JG label3, ax, bx
+	JLE label4, ax, bx
+	JGE label5, ax, bx
+	
+	JE label0, ax, 123
+	JE label1, [111], bx
+	JE label2, [222], 456
+	;JE label3, 0p, bx
+	;JE label4, 0p, 789
+	`
+
+	expected := []Instruction{
+		Instruction{Enc: 1, C: 10, Cmux: 1},
+		Instruction{Enc: 1, C: 10, Cmux: 1},
+		Instruction{Enc: 1, C: 10, Cmux: 1},
+		Instruction{Enc: 1, C: 10, Cmux: 1},
+		Instruction{Enc: 1, C: 10, Cmux: 1},
+		Instruction{Enc: 1, C: 10, Cmux: 1},
+
+		Instruction{A: 10, B: 11, Alu: 2, Bran: 0, Cond: 1},
+		Instruction{A: 10, B: 11, Alu: 2, Bran: 1, Cond: 2},
+		Instruction{A: 10, B: 11, Alu: 2, Bran: 2, Cond: 3},
+		Instruction{A: 10, B: 11, Alu: 2, Bran: 3, Cond: 4},
+		Instruction{A: 10, B: 11, Alu: 2, Bran: 4, Cond: 5},
+		Instruction{A: 10, B: 11, Alu: 2, Bran: 5, Cond: 6},
+
+		Instruction{A: 10, Alu: 2, Cond: 1, Bran: 0, Bmux: 1, Imm: 123},
+		Instruction{Amux: 1, Mar: 2, Addr: 111, Rd: 1, Alu: 2, Cond: 1, Bran: 1, B: 11},
+		Instruction{Amux: 1, Mar: 2, Addr: 222, Rd: 1, Alu: 2, Cond: 1, Bran: 2, Bmux: 1, Imm: 456},
 	}
 
 	testBuild(t, source, expected)
