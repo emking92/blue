@@ -33,15 +33,8 @@ var (
 	immediatePointerArgumentRegex *regexp.Regexp
 	registerArgumentRegex         *regexp.Regexp
 	registerPointerArgumentRegex  *regexp.Regexp
-	registerMap                   map[string]byte
-)
-
-func init() {
-	immediateArgumentRegex, _ = regexp.Compile(`^\d+$`)
-	immediatePointerArgumentRegex, _ = regexp.Compile(`^\[(\d+)\]$`)
-	registerArgumentRegex, _ = regexp.Compile(`^[a-z]x$`)
-	registerPointerArgumentRegex, _ = regexp.Compile(`^\[([a-z]x)\]$`)
-	registerMap = map[string]byte{
+	portArgumentRegex             *regexp.Regexp
+	registerMap                   = map[string]byte{
 		"ax": 10,
 		"bx": 11,
 		"cx": 12,
@@ -49,6 +42,31 @@ func init() {
 		"ex": 14,
 		"fx": 15,
 	}
+	portMap = map[string]int{
+		"1p": 1,
+		"2p": 2,
+		"3p": 3,
+		"4p": 4,
+		"5p": 5,
+		"6p": 6,
+		"7p": 7,
+		"8p": 8,
+		"9p": 9,
+		"ap": 10,
+		"bp": 11,
+		"cp": 12,
+		"dp": 13,
+		"ep": 14,
+		"fp": 15,
+	}
+)
+
+func init() {
+	immediateArgumentRegex, _ = regexp.Compile(`^\d+$`)
+	immediatePointerArgumentRegex, _ = regexp.Compile(`^\[(\d+)\]$`)
+	registerArgumentRegex, _ = regexp.Compile(`^[a-z]x$`)
+	registerPointerArgumentRegex, _ = regexp.Compile(`^\[([a-z]x)\]$`)
+	portArgumentRegex, _ = regexp.Compile(`^[a-z0-9]p$`)
 }
 
 func (arg argument) build(pgm *programBuilder) (ins Instruction) {
@@ -99,6 +117,10 @@ func (pgm programBuilder) parseInstructionArgument(argStr string, index int) (ar
 	} else if registerPointerArgumentRegex.MatchString(argStr) {
 		arg.argType = argumentTypeRegisterPointer
 		arg.buildFunc = buildRegisterPointerArgument
+
+	} else if portArgumentRegex.MatchString(argStr) {
+		arg.argType = argumentTypePort
+		arg.buildFunc = buildPortArgument
 
 	} else if pgm.isLabelDefined(argStr) {
 		arg.argType = argumentTypeLabel
@@ -210,5 +232,20 @@ func buildLabelArgument(pgm *programBuilder, this argument) (ins Instruction, er
 }
 
 func buildPortArgument(pgm *programBuilder, this argument) (ins Instruction, err error) {
+	portAddress, ok := portMap[strings.ToLower(this.argStr)]
+	if !ok {
+		err = fmt.Errorf("undefined port: %s", this.argStr)
+		return
+	}
+
+	switch this.index {
+	case 0:
+		ins = Instruction{Addr: portAddress, Wr: 1, Mar: 2, Mbr: 1}
+	case 1:
+		ins = Instruction{Addr: portAddress, Rd: 1, Mar: 2, Amux: 1}
+	case 2:
+		panic("Invalid argment")
+	}
+
 	return
 }

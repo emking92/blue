@@ -15,6 +15,7 @@ func TestMOV(t *testing.T) {
 	MOV cx, 101
 	MOV dx, [102]
 	MOV [103], ex
+	MOV [105], 106
 	MOV [ax], bx
 	MOV [cx], 104
 	MOV dx, [ex]
@@ -25,6 +26,7 @@ func TestMOV(t *testing.T) {
 		Instruction{Enc: 1, C: 12, Cmux: 1, Imm: 101},
 		Instruction{Enc: 1, C: 13, Amux: 1, Mar: 2, Addr: 102, Rd: 1},
 		Instruction{Mar: 2, Addr: 103, Wr: 1, A: 14, Mbr: 1},
+		Instruction{Mar: 2, Addr: 105, Wr: 1, Mbr: 1, Cmux: 1, Imm: 106},
 		Instruction{B: 10, Wr: 1, Mar: 1, A: 11, Mbr: 1},
 		Instruction{B: 12, Wr: 1, Mar: 1, Cmux: 1, Imm: 104, Mbr: 1},
 		Instruction{Enc: 1, C: 13, B: 14, Rd: 1, Mar: 1, Amux: 1},
@@ -127,8 +129,6 @@ func TestCondJMP(t *testing.T) {
 	JE label0, ax, 123
 	JE label1, [111], bx
 	JE label2, [222], 456
-	;JE label3, 0p, bx
-	;JE label4, 0p, 789
 	`
 
 	expected := []Instruction{
@@ -149,6 +149,22 @@ func TestCondJMP(t *testing.T) {
 		Instruction{A: 10, Alu: 2, Cond: 1, Bran: 0, Bmux: 1, Imm: 123},
 		Instruction{Amux: 1, Mar: 2, Addr: 111, Rd: 1, Alu: 2, Cond: 1, Bran: 1, B: 11},
 		Instruction{Amux: 1, Mar: 2, Addr: 222, Rd: 1, Alu: 2, Cond: 1, Bran: 2, Bmux: 1, Imm: 456},
+	}
+
+	testBuild(t, source, expected)
+}
+
+func TestIO(t *testing.T) {
+	source := `
+		IN ax, 1p
+		OUT 2p, bx
+		OUT 3p, 120
+	`
+
+	expected := []Instruction{
+		Instruction{Enc: 1, C: 10, Amux: 1, Mar: 2, Addr: 1, Rd: 1},
+		Instruction{Mar: 2, Addr: 2, Wr: 1, A: 11, Mbr: 1},
+		Instruction{Mar: 2, Addr: 3, Wr: 1, Mbr: 1, Cmux: 1, Imm: 120},
 	}
 
 	testBuild(t, source, expected)

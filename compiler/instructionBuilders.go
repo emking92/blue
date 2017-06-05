@@ -21,6 +21,7 @@ var opBuildStrategies = map[string]instructionBuildStrategy{
 			[]string{"xx", "123"},
 			[]string{"xx", "[123]"},
 			[]string{"[123]", "xx"},
+			[]string{"[123]", "123"},
 			[]string{"[xx]", "xx"},
 			[]string{"[xx]", "123"},
 		),
@@ -37,6 +38,19 @@ var opBuildStrategies = map[string]instructionBuildStrategy{
 		build: instructionBuilderJMP,
 		typeSignatures: createSignatureGroup(
 			[]string{"label"},
+		),
+	},
+	"in": instructionBuildStrategy{
+		build: instructionBuilderIO,
+		typeSignatures: createSignatureGroup(
+			[]string{"xx", "pp"},
+		),
+	},
+	"out": instructionBuildStrategy{
+		build: instructionBuilderIO,
+		typeSignatures: createSignatureGroup(
+			[]string{"pp", "xx"},
+			[]string{"pp", "123"},
 		),
 	},
 	"add": aluInstructionBuildStrategy,
@@ -162,6 +176,13 @@ func instructionBuilderJMP(pgm *programBuilder, op string, args []argument) Inst
 	addr := args[0].build(pgm)
 
 	return joinInstructions(jmpInstruction, addr)
+}
+
+func instructionBuilderIO(pgm *programBuilder, op string, args []argument) Instruction {
+	ins0 := args[0].build(pgm)
+	ins1 := args[1].build(pgm)
+
+	return joinInstructions(ins0, ins1)
 }
 
 func instructionBuilderCondJMP(pgm *programBuilder, op string, args []argument) Instruction {
