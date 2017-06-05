@@ -52,6 +52,7 @@ func TestALU(t *testing.T) {
 	MUL cx, [124], dx
 	DIV [125], ex, fx
 	MOD [126], ax, 127
+	AND bx, [128], 129
 	`
 
 	expected := []Instruction{
@@ -69,6 +70,7 @@ func TestALU(t *testing.T) {
 		Instruction{Enc: 1, B: 13, C: 12, Alu: 3, Addr: 124, Rd: 1, Mar: 2, Amux: 1},
 		Instruction{Addr: 125, Wr: 1, Mar: 2, A: 14, B: 15, Alu: 4, Mbr: 1},
 		Instruction{Addr: 126, Wr: 1, Mar: 2, A: 10, Imm: 127, Bmux: 1, Alu: 5, Mbr: 1},
+		Instruction{Enc: 1, C: 11, Alu: 6, Addr: 128, Rd: 1, Mar: 2, Amux: 1, Bmux: 1, Imm: 129},
 	}
 
 	testBuild(t, source, expected)
@@ -78,11 +80,13 @@ func TestVAR(t *testing.T) {
 	source := `
 	VAR foo, 123
 	VAR bar, ax
+	MOV ax, [$foo]
 	`
 
 	expected := []Instruction{
 		Instruction{Mbr: 1, Mar: 2, Wr: 1, Addr: 16, Cmux: 1, Imm: 123},
 		Instruction{Mbr: 1, Mar: 2, Wr: 1, Addr: 17, A: 10},
+		Instruction{Enc: 1, C: 10, Amux: 1, Mar: 2, Addr: 16, Rd: 1},
 	}
 
 	testBuild(t, source, expected)
@@ -156,15 +160,33 @@ func TestCondJMP(t *testing.T) {
 
 func TestIO(t *testing.T) {
 	source := `
-		IN ax, 1p
-		OUT 2p, bx
-		OUT 3p, 120
+	IN ax, 1p
+	OUT 2p, bx
+	OUT 3p, 120
 	`
 
 	expected := []Instruction{
 		Instruction{Enc: 1, C: 10, Amux: 1, Mar: 2, Addr: 1, Rd: 1},
 		Instruction{Mar: 2, Addr: 2, Wr: 1, A: 11, Mbr: 1},
 		Instruction{Mar: 2, Addr: 3, Wr: 1, Mbr: 1, Cmux: 1, Imm: 120},
+	}
+
+	testBuild(t, source, expected)
+}
+
+func TestConst(t *testing.T) {
+	source := `
+	#CONST foo, 200
+	#CONST bar, 201
+	#CONST fun, 202
+	MOV ax, $foo
+	VAR test, $bar
+	ADD bx, [$test], $fun
+	`
+	expected := []Instruction{
+		Instruction{Enc: 1, C: 10, Cmux: 1, Imm: 200},
+		Instruction{Mbr: 1, Mar: 2, Wr: 1, Addr: 16, Cmux: 1, Imm: 201},
+		Instruction{Enc: 1, C: 11, Alu: 1, Addr: 16, Rd: 1, Mar: 2, Amux: 1, Bmux: 1, Imm: 202},
 	}
 
 	testBuild(t, source, expected)

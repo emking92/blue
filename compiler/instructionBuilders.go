@@ -76,6 +76,7 @@ var (
 		typeSignatures: createSignatureGroup(
 			[]string{"xx", "xx", "xx"},
 			[]string{"xx", "[123]", "xx"},
+			[]string{"xx", "[123]", "123"},
 			[]string{"xx", "xx", "123"},
 			[]string{"[123]", "xx", "xx"},
 			[]string{"[123]", "xx", "123"},

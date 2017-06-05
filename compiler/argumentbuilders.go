@@ -21,9 +21,9 @@ type argumentGroup []argument
 const (
 	argumentTypeUndefined        = argumentType("undefined")
 	argumentTypeImmediate        = argumentType("immediate")
-	argumentTypeImmediatePointer = argumentType("[immediate]")
+	argumentTypeImmediatePointer = argumentType("immediate_pointer")
 	argumentTypeRegister         = argumentType("register")
-	argumentTypeRegisterPointer  = argumentType("[register]")
+	argumentTypeRegisterPointer  = argumentType("register_pointer")
 	argumentTypePort             = argumentType("port")
 	argumentTypeLabel            = argumentType("label")
 )

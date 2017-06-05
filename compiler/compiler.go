@@ -16,28 +16,41 @@ var (
 	lineRegexIndexArg2  int
 	lineRegexIndexArg3  int
 
+	preprocessLineRegex          *regexp.Regexp
+	preprocesslineRegexIndexOp   int
+	preprocesslineRegexIndexArg1 int
+	preprocesslineRegexIndexArg2 int
+	preprocesslineRegexIndexArg3 int
+
 	ignoredLineRegex *regexp.Regexp
 )
 
 func init() {
-	var err error
-	lineRegex, err = regexp.Compile(`^\s*(?:(\w[\w\d+]*\s*):)?\s*([A-Za-z]+)\s+([\w\d\[\]\$]+)(\s*,\s*([\w\d\[\]\$]+)(\s*,\s*([\w\d\[\]\$]+))?)?\s*(;.*)?$`)
+	lineRegex, _ = regexp.Compile(`^\s*(?:(\w[\w\d+]*\s*):)?\s*([A-Za-z]+)\s+([\w\d\[\]\$]+)(\s*,\s*([\w\d\[\]\$]+)(\s*,\s*([\w\d\[\]\$]+))?)?\s*(;.*)?$`)
 	lineRegexIndexLabel = 1
 	lineRegexIndexOp = 2
 	lineRegexIndexArg1 = 3
 	lineRegexIndexArg2 = 5
 	lineRegexIndexArg3 = 7
 
-	if err != nil {
-		panic(err)
-	}
+	preprocessLineRegex, _ = regexp.Compile(`^\s*#([A-Za-z]+)(\s+([\w\d\$]+)(\s*,\s*([\w\d\$]+)(\s*,\s*([\w\d\$]+))?)?)?\s*(;.*)?$`)
+	preprocesslineRegexIndexOp = 1
+	preprocesslineRegexIndexArg1 = 3
+	preprocesslineRegexIndexArg2 = 5
+	preprocesslineRegexIndexArg3 = 7
 
-	ignoredLineRegex, err = regexp.Compile(`^\s*(;.*)?$`)
+	ignoredLineRegex, _ = regexp.Compile(`^\s*(;.*)?$`)
 }
 
 type codeParts struct {
 	lineNumber int
 	label      string
+	op         string
+	args       []string
+}
+
+type preprocessorParts struct {
+	lineNumber int
 	op         string
 	args       []string
 }
@@ -64,9 +77,25 @@ func BuildSource(source io.Reader) (instructions []Instruction, err error) {
 			continue
 		}
 
+		matches := preprocessLineRegex.FindStringSubmatch(line)
+		if matches != nil {
+			parts := preprocessorParts{
+				lineNumber: lineNumber,
+				op:         matches[preprocesslineRegexIndexOp],
+				args: []string{
+					matches[preprocesslineRegexIndexArg1],
+					matches[preprocesslineRegexIndexArg2],
+					matches[preprocesslineRegexIndexArg3],
+				},
+			}
+
+			pgm.preprocess(parts)
+			continue
+		}
+
 		instructionIndex++
 
-		matches := lineRegex.FindStringSubmatch(line)
+		matches = lineRegex.FindStringSubmatch(line)
 		if matches == nil {
 			pgm.compileErrorString("syntax error: " + strings.TrimSpace(line))
 			continue

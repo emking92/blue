@@ -51,6 +51,46 @@ func (pgm *programBuilder) compileErrorString(message string, args ...interface{
 	pgm.errs = append(pgm.errs, str)
 }
 
+func (pgm *programBuilder) preprocess(parts preprocessorParts) {
+	pgm.currentLineNumber = parts.lineNumber
+	op := strings.ToLower(parts.op)
+
+	strategy, strategyOk := precompilerStrategies[op]
+	if !strategyOk {
+		pgm.compileErrorString("undefined preprocess operation: " + parts.op)
+		return
+	}
+
+	argCount := 0
+	if len(parts.args[2]) > 0 {
+		argCount = 3
+	} else if len(parts.args[1]) > 0 {
+		argCount = 2
+	} else if len(parts.args[0]) > 0 {
+		argCount = 1
+	}
+
+	if argCount != strategy.argCount {
+		pgm.compileErrorString("invalid argument count for preprocess operation %s. Requires %d, but received %v", op, strategy.argCount, parts.args[:argCount])
+		return
+	}
+
+	args := make([]string, argCount)
+
+	for i := 0; i < argCount; i++ {
+		argStr, err := pgm.variables.Expand(parts.args[i])
+
+		if err != nil {
+			pgm.compileErrorString(err.Error())
+			continue
+		}
+
+		args[i] = argStr
+	}
+
+	strategy.precompile(pgm, op, args)
+}
+
 func (pgm *programBuilder) buildInstruction(parts codeParts) {
 	pgm.currentLineNumber = parts.lineNumber
 	op := strings.ToLower(parts.op)
