@@ -1,21 +1,53 @@
 package main
 
 import (
+	"blue/compiler"
+	"blue/printer"
 	"bytes"
 	"compress/zlib"
 	"encoding/base64"
-	//	"encoding/json"
-	//	"blue/entities"
-	//	"blue/entities/controls"
-	"factorio-assembly/blueprinter"
+	"flag"
 	"fmt"
 	"io/ioutil"
+	"os"
+	"path/filepath"
 )
 
 func main() {
-	blueprinter.CreateBlueprint()
+	blueFilePath := flag.Arg(0)
+	blueFilePath = "test.blue"
+	if blueFilePath == "" {
+		fmt.Println("blue file not specified")
+		os.Exit(1)
+	}
 
-	readTestBlueprint()
+	blueFilePath, err := filepath.Abs(blueFilePath)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	blueFile, err := os.Open(blueFilePath)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	defer blueFile.Close()
+
+	instructions, err := compiler.BuildSource(blueFile)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	err = printer.CreateBlueprint(instructions, os.Stdout)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	os.Stdout.WriteString("\n")
+
+	//readTestBlueprint()
 }
 
 func readTestBlueprint() {

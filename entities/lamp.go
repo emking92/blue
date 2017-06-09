@@ -1,9 +1,5 @@
 package entities
 
-import (
-	"factorio-assembly/entities/controls"
-)
-
 type Lamp struct {
 	*Entity
 	Behavior lampBehavior `json:"control_behavior"`
@@ -14,10 +10,10 @@ type lampBehavior struct {
 }
 
 type lampConditions struct {
-	FirstSignal  controls.Signal     `json:"first_signal"`
-	SecondSignal *controls.Signal    `json:"second_signal,omitempty"`
-	Constant     int                 `json:"constant"`
-	Comparator   controls.Comparator `json:"comparator"`
+	FirstSignal  Signal     `json:"first_signal"`
+	SecondSignal *Signal    `json:"second_signal,omitempty"`
+	Constant     int        `json:"constant"`
+	Comparator   Comparator `json:"comparator"`
 }
 
 func (lamp *Lamp) Init() {
@@ -25,15 +21,15 @@ func (lamp *Lamp) Init() {
 	lamp.Entity.initEntity()
 }
 
-func NewLamp(firstSignal controls.Signal, secondSignal controls.Signal, comparator controls.Comparator) Lamp {
+func NewLamp(firstSignal Signal, secondSignal Signal, comparator Comparator) Lamp {
 	return newLamp(firstSignal, &secondSignal, 0, comparator)
 }
 
-func NewLampWithConstant(firstSignal controls.Signal, constant int, comparator controls.Comparator) Lamp {
+func NewLampWithConstant(firstSignal Signal, constant int, comparator Comparator) Lamp {
 	return newLamp(firstSignal, nil, constant, comparator)
 }
 
-func newLamp(firstSignal controls.Signal, secondSignal *controls.Signal, constant int, comparator controls.Comparator) Lamp {
+func newLamp(firstSignal Signal, secondSignal *Signal, constant int, comparator Comparator) Lamp {
 	lamp := Lamp{
 		Behavior: lampBehavior{
 			lampConditions{

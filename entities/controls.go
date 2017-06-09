@@ -1,4 +1,4 @@
-package controls
+package entities
 
 type FilterGroup []Filter
 

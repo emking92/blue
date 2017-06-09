@@ -62,10 +62,10 @@ var (
 )
 
 func init() {
-	immediateArgumentRegex, _ = regexp.Compile(`^\d+$`)
-	immediatePointerArgumentRegex, _ = regexp.Compile(`^\[(\d+)\]$`)
+	immediateArgumentRegex, _ = regexp.Compile(`^-?\d+$`)
+	immediatePointerArgumentRegex, _ = regexp.Compile(`^\[-?\d+\]$`)
 	registerArgumentRegex, _ = regexp.Compile(`^[a-z]x$`)
-	registerPointerArgumentRegex, _ = regexp.Compile(`^\[([a-z]x)\]$`)
+	registerPointerArgumentRegex, _ = regexp.Compile(`^\[[a-z]x\]$`)
 	portArgumentRegex, _ = regexp.Compile(`^[a-z0-9]p$`)
 }
 

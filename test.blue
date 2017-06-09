@@ -1,0 +1,20 @@
+#const ball, 1632
+#const down, 65536
+#const right, 1048576
+#const clearBuf, -1
+#const flushBuf, -2
+
+start: OUT 1p, $clearBuf
+
+MOV ax, $ball
+OUT 1p, ax
+OUT 1p, $flushBuf
+
+loop:IN bx, bp
+MUL bx, bx, $down
+ADD ax, ax, bx
+
+OUT 1p, $clearBuf
+OUT 1p, ax
+OUT 1p, $flushBuf
+jmp loop

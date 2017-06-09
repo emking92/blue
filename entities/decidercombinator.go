@@ -1,9 +1,5 @@
 package entities
 
-import (
-	"factorio-assembly/entities/controls"
-)
-
 type DeciderCombinator struct {
 	*Entity
 	Behavior deciderBehavior `json:"control_behavior"`
@@ -14,12 +10,12 @@ type deciderBehavior struct {
 }
 
 type deciderConditions struct {
-	FirstSignal        controls.Signal     `json:"first_signal"`
-	SecondSignal       *controls.Signal    `json:"second_signal,omitempty"`
-	Constant           int                 `json:"constant"`
-	Comparator         controls.Comparator `json:"comparator"`
-	OutputSignal       controls.Signal     `json:"output_signal"`
-	CopyCountFromInput bool                `json:"copy_count_from_input"`
+	FirstSignal        Signal     `json:"first_signal"`
+	SecondSignal       *Signal    `json:"second_signal,omitempty"`
+	Constant           int        `json:"constant"`
+	Comparator         Comparator `json:"comparator"`
+	OutputSignal       Signal     `json:"output_signal"`
+	CopyCountFromInput bool       `json:"copy_count_from_input"`
 }
 
 func (comb *DeciderCombinator) Init() {
@@ -27,15 +23,15 @@ func (comb *DeciderCombinator) Init() {
 	comb.Entity.initEntity()
 }
 
-func NewDeciderCombinator(firstSignal controls.Signal, secondSignal controls.Signal, comparator controls.Comparator, outputSignal controls.Signal, copyCountFromInput bool) DeciderCombinator {
+func NewDeciderCombinator(firstSignal Signal, secondSignal Signal, comparator Comparator, outputSignal Signal, copyCountFromInput bool) DeciderCombinator {
 	return newDeciderCombinator(firstSignal, &secondSignal, 0, comparator, outputSignal, copyCountFromInput)
 }
 
-func NewDeciderCombinatorWithConstant(firstSignal controls.Signal, constant int, comparator controls.Comparator, outputSignal controls.Signal, copyCountFromInput bool) DeciderCombinator {
+func NewDeciderCombinatorWithConstant(firstSignal Signal, constant int, comparator Comparator, outputSignal Signal, copyCountFromInput bool) DeciderCombinator {
 	return newDeciderCombinator(firstSignal, nil, constant, comparator, outputSignal, copyCountFromInput)
 }
 
-func newDeciderCombinator(firstSignal controls.Signal, secondSignal *controls.Signal, constant int, comparator controls.Comparator, outputSignal controls.Signal, copyCountFromInput bool) DeciderCombinator {
+func newDeciderCombinator(firstSignal Signal, secondSignal *Signal, constant int, comparator Comparator, outputSignal Signal, copyCountFromInput bool) DeciderCombinator {
 	dc := DeciderCombinator{
 		Behavior: deciderBehavior{
 			deciderConditions{

@@ -1,9 +1,5 @@
 package entities
 
-import (
-	"blue-asm/entities/controls"
-)
-
 type ArithmaticCombinator struct {
 	*Entity
 	Behavior arithmaticBehavior `json:"control_behavior"`
@@ -14,12 +10,12 @@ type arithmaticBehavior struct {
 }
 
 type arithmaticConditions struct {
-	FirstSignal        controls.Signal    `json:"first_signal"`
-	SecondSignal       *controls.Signal   `json:"second_signal,omitempty"`
-	Constant           int                `json:"constant"`
-	Operation          controls.Operation `json:"operation"`
-	OutputSignal       controls.Signal    `json:"output_signal"`
-	CopyCountFromInput int                `json:"copy_count_from_input"`
+	FirstSignal        Signal    `json:"first_signal"`
+	SecondSignal       *Signal   `json:"second_signal,omitempty"`
+	Constant           int       `json:"constant"`
+	Operation          Operation `json:"operation"`
+	OutputSignal       Signal    `json:"output_signal"`
+	CopyCountFromInput int       `json:"copy_count_from_input"`
 }
 
 func (comb *ArithmaticCombinator) Init() {
@@ -27,15 +23,15 @@ func (comb *ArithmaticCombinator) Init() {
 	comb.initEntity()
 }
 
-func NewArithmaticCombinator(firstSignal controls.Signal, secondSignal controls.Signal, operation controls.Operation, outputSignal controls.Signal) ArithmaticCombinator {
+func NewArithmaticCombinator(firstSignal Signal, secondSignal Signal, operation Operation, outputSignal Signal) ArithmaticCombinator {
 	return newArithmaticCombinator(firstSignal, &secondSignal, 0, operation, outputSignal)
 }
 
-func NewArithmaticCombinatorWithConstant(firstSignal controls.Signal, constant int, operation controls.Operation, outputSignal controls.Signal) ArithmaticCombinator {
+func NewArithmaticCombinatorWithConstant(firstSignal Signal, constant int, operation Operation, outputSignal Signal) ArithmaticCombinator {
 	return newArithmaticCombinator(firstSignal, nil, constant, operation, outputSignal)
 }
 
-func newArithmaticCombinator(firstSignal controls.Signal, secondSignal *controls.Signal, constant int, operation controls.Operation, outputSignal controls.Signal) ArithmaticCombinator {
+func newArithmaticCombinator(firstSignal Signal, secondSignal *Signal, constant int, operation Operation, outputSignal Signal) ArithmaticCombinator {
 	ac := ArithmaticCombinator{
 		Behavior: arithmaticBehavior{
 			arithmaticConditions{

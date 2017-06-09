@@ -1,14 +1,14 @@
-package blueprinter
+package printer
 
 import (
+	"blue/compiler"
+	"blue/entities"
 	"bytes"
 	"compress/zlib"
 	"encoding/base64"
 	"encoding/json"
-	"factorio-assembly/compiler"
-	"factorio-assembly/entities"
-	"factorio-assembly/entities/controls"
 	"fmt"
+	"io"
 )
 
 type BlueprintFile struct {
@@ -26,7 +26,7 @@ type Blueprint struct {
 }
 
 type Icon struct {
-	Signal controls.Signal `json:"signal"`
+	Signal entities.Signal `json:"signal"`
 	Index  int             `json:"index"`
 }
 
@@ -37,39 +37,40 @@ type InstructionEntityGroup struct {
 }
 
 var (
-	signalInstructionIndex = controls.SignalItem("grenade")
-	signalNegative         = controls.SignalItem("poison-capsule")
-	signalAmux             = controls.SignalItem("crude-oil-barrel")
-	signalBmux             = controls.SignalItem("lubricant-barrel")
-	signalCmux             = controls.SignalItem("empty-barrel")
-	signalCond             = controls.SignalItem("heavy-oil-barrel")
-	signalAlu              = controls.SignalItem("light-oil-barrel")
-	signalMbr              = controls.SignalItem("petroleum-gas-barrel")
-	signalMar              = controls.SignalItem("water-barrel")
-	signalRd               = controls.SignalItem("science-pack-1")
-	signalWr               = controls.SignalItem("high-tech-science-pack")
-	signalEnc              = controls.SignalItem("science-pack-2")
-	signalA                = controls.SignalItem("science-pack-3")
-	signalB                = controls.SignalItem("space-science-pack")
-	signalC                = controls.SignalItem("production-science-pack")
-	signalAddr             = controls.SignalItem("military-science-pack")
-	signalImm              = controls.SignalItem("sulfuric-acid-barrel")
+	signalInstructionIndex = entities.SignalItem("grenade")
+	signalNegative         = entities.SignalItem("poison-capsule")
+	signalAmux             = entities.SignalItem("crude-oil-barrel")
+	signalBmux             = entities.SignalItem("lubricant-barrel")
+	signalCmux             = entities.SignalItem("empty-barrel")
+	signalCond             = entities.SignalItem("heavy-oil-barrel")
+	signalAlu              = entities.SignalItem("light-oil-barrel")
+	signalMbr              = entities.SignalItem("petroleum-gas-barrel")
+	signalMar              = entities.SignalItem("water-barrel")
+	signalRd               = entities.SignalItem("science-pack-1")
+	signalWr               = entities.SignalItem("high-tech-science-pack")
+	signalEnc              = entities.SignalItem("science-pack-2")
+	signalA                = entities.SignalItem("science-pack-3")
+	signalB                = entities.SignalItem("space-science-pack")
+	signalC                = entities.SignalItem("production-science-pack")
+	signalAddr             = entities.SignalItem("military-science-pack")
+	signalImm              = entities.SignalItem("sulfuric-acid-barrel")
+	signalBran             = entities.SignalItem("used-up-uranium-fuel-cell")
 )
 
 func (bp *BlueprintFile) addEntities(entities ...entities.IEntity) {
 	bp.Blueprint.Entities = append(bp.Blueprint.Entities, entities...)
 }
 
-func CreateBlueprint( /*instructions []compiler.Instruction, writer io.Writer*/ ) {
+func CreateBlueprint(instructions []compiler.Instruction, writer io.Writer) error {
 
 	//Build Bp file
 	bpf := BlueprintFile{
 		Blueprint: Blueprint{
 			Icons: []Icon{
-				Icon{Signal: controls.SignalItem("science-pack-1"), Index: 1},
-				Icon{Signal: controls.SignalItem("science-pack-2"), Index: 2},
-				Icon{Signal: controls.SignalItem("science-pack-3"), Index: 3},
-				Icon{Signal: controls.SignalItem("space-science-pack"), Index: 4},
+				Icon{Signal: entities.SignalItem("science-pack-1"), Index: 1},
+				Icon{Signal: entities.SignalItem("science-pack-2"), Index: 2},
+				Icon{Signal: entities.SignalItem("science-pack-3"), Index: 3},
+				Icon{Signal: entities.SignalItem("space-science-pack"), Index: 4},
 			},
 			Entities: []entities.IEntity{},
 			Item:     "blueprint",
@@ -81,15 +82,6 @@ func CreateBlueprint( /*instructions []compiler.Instruction, writer io.Writer*/ 
 	addBusConnector(&bpf)
 
 	//Build and connect each row
-	instructions := []compiler.Instruction{
-		compiler.Instruction{C: 11, Enc: 1, Alu: 8},
-		compiler.Instruction{C: 10, Enc: 1, Cmux: 1, Imm: 13},
-		compiler.Instruction{C: 10, A: 10, B: 8, Enc: 1, Alu: 0},
-		compiler.Instruction{C: 11, Enc: 1, Cmux: 1, Imm: 2},
-		compiler.Instruction{C: 11, Enc: 1, A: 11, B: 10, Alu: 2},
-		compiler.Instruction{Cond: 3},
-	}
-
 	instructionEntityGroups := make([]InstructionEntityGroup, len(instructions))
 
 	for i, instruction := range instructions {
@@ -105,20 +97,29 @@ func CreateBlueprint( /*instructions []compiler.Instruction, writer io.Writer*/ 
 		}
 	}
 
-	//Create file
-	bpf.asBlueprintString()
+	//Create string
+	str, err := bpf.asBlueprintString()
+	if err != nil {
+		return err
+	}
 
+	_, err = writer.Write([]byte(str))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func addBusConnector(bp *BlueprintFile) {
-	instructionIndexInput := entities.NewArithmaticCombinatorWithConstant(signalInstructionIndex, 0, controls.OperationAddition, signalInstructionIndex)
+	instructionIndexInput := entities.NewArithmaticCombinatorWithConstant(signalInstructionIndex, 0, entities.OperationAddition, signalInstructionIndex)
 	instructionIndexInput.Position.Set(0, 1.5)
 
-	allReturn := entities.NewArithmaticCombinatorWithConstant(controls.SignalVirtualEach, 0, controls.OperationAddition, controls.SignalVirtualEach)
+	allReturn := entities.NewArithmaticCombinatorWithConstant(entities.SignalVirtualEach, 0, entities.OperationAddition, entities.SignalVirtualEach)
 	allReturn.Position.Set(1, 1.5)
 	allReturn.Direction = entities.DirectionDown
 
-	negateInstructionIndexReturn := entities.NewArithmaticCombinator(signalInstructionIndex, signalNegative, controls.OperationMultiplication, signalInstructionIndex)
+	negateInstructionIndexReturn := entities.NewArithmaticCombinator(signalInstructionIndex, signalNegative, entities.OperationMultiplication, signalInstructionIndex)
 	negateInstructionIndexReturn.Position.Set(2, 1.5)
 	negateInstructionIndexReturn.Direction = entities.DirectionDown
 
@@ -155,9 +156,10 @@ func buildEntitiesFromInstruction(bp *BlueprintFile, instruction compiler.Instru
 			signalC, instruction.C,
 			signalAddr, instruction.Addr,
 			signalImm, instruction.Imm,
+			signalBran, instruction.Bran,
 		),
-		InstructionDecider: entities.NewDeciderCombinatorWithConstant(signalInstructionIndex, index, controls.ComparatorEqual, controls.SignalVirtualEverything, true),
-		Lamp:               entities.NewLampWithConstant(controls.SignalVirtualAnything, 0, controls.ComparatorGreaterThan),
+		InstructionDecider: entities.NewDeciderCombinatorWithConstant(signalInstructionIndex, index, entities.ComparatorEqual, entities.SignalVirtualEverything, true),
+		Lamp:               entities.NewLampWithConstant(entities.SignalVirtualAnything, 0, entities.ComparatorGreaterThan),
 	}
 
 	entityGroup.InstructionProvider.Direction = entities.DirectionRight
@@ -175,14 +177,13 @@ func buildEntitiesFromInstruction(bp *BlueprintFile, instruction compiler.Instru
 	return entityGroup
 }
 
-func (bp BlueprintFile) asBlueprintString() {
+func (bp BlueprintFile) asBlueprintString() (outString string, err error) {
 	var jsonBuffer bytes.Buffer
 	jsonEncoder := json.NewEncoder(&jsonBuffer)
 	jsonEncoder.SetEscapeHTML(false)
 
-	err := jsonEncoder.Encode(bp)
+	err = jsonEncoder.Encode(bp)
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 
@@ -190,14 +191,13 @@ func (bp BlueprintFile) asBlueprintString() {
 
 	var zippedBuffer bytes.Buffer
 	gzipper := zlib.NewWriter(&zippedBuffer)
+
 	_, err = gzipper.Write(jsonBuffer.Bytes())
+	gzipper.Close()
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
-	gzipper.Close()
 
-	outString := base64.StdEncoding.EncodeToString(zippedBuffer.Bytes())
-
-	fmt.Println(outString)
+	outString = "0" + base64.StdEncoding.EncodeToString(zippedBuffer.Bytes())
+	return
 }

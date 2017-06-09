@@ -26,14 +26,14 @@ var (
 )
 
 func init() {
-	lineRegex, _ = regexp.Compile(`^\s*(?:(\w[\w\d+]*\s*):)?\s*([A-Za-z]+)\s+([\w\d\[\]\$]+)(\s*,\s*([\w\d\[\]\$]+)(\s*,\s*([\w\d\[\]\$]+))?)?\s*(;.*)?$`)
+	lineRegex, _ = regexp.Compile(`^\s*(?:(\w[\w\d+]*\s*):)?\s*([A-Za-z]+)\s+(-?[\w\d\[\]\$]+)(\s*,\s*(-?[\w\d\[\]\$]+)(\s*,\s*(-?[\w\d\[\]\$]+))?)?\s*(;.*)?$`)
 	lineRegexIndexLabel = 1
 	lineRegexIndexOp = 2
 	lineRegexIndexArg1 = 3
 	lineRegexIndexArg2 = 5
 	lineRegexIndexArg3 = 7
 
-	preprocessLineRegex, _ = regexp.Compile(`^\s*#([A-Za-z]+)(\s+([\w\d\$]+)(\s*,\s*([\w\d\$]+)(\s*,\s*([\w\d\$]+))?)?)?\s*(;.*)?$`)
+	preprocessLineRegex, _ = regexp.Compile(`^\s*#([A-Za-z]+)(\s+(-?[\w\d\$]+)(\s*,\s*(-?[\w\d\$]+)(\s*,\s*(-?[\w\d\$]+))?)?)?\s*(;.*)?$`)
 	preprocesslineRegexIndexOp = 1
 	preprocesslineRegexIndexArg1 = 3
 	preprocesslineRegexIndexArg2 = 5

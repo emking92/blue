@@ -1,16 +1,12 @@
 package entities
 
-import (
-	"factorio-assembly/entities/controls"
-)
-
 type ConstantCombinator struct {
 	*Entity
 	Behavior constantBehavior `json:"control_behavior"`
 }
 
 type constantBehavior struct {
-	Filters controls.FilterGroup `json:"filters"`
+	Filters FilterGroup `json:"filters"`
 }
 
 func (con *ConstantCombinator) Init() {
@@ -19,10 +15,10 @@ func (con *ConstantCombinator) Init() {
 }
 
 func NewConstantCombinator(signalCountPairs ...interface{}) ConstantCombinator {
-	return NewConstantCombinatorWithGroup(controls.NewFilterGroup(signalCountPairs...))
+	return NewConstantCombinatorWithGroup(NewFilterGroup(signalCountPairs...))
 }
 
-func NewConstantCombinatorWithGroup(filterGroup controls.FilterGroup) ConstantCombinator {
+func NewConstantCombinatorWithGroup(filterGroup FilterGroup) ConstantCombinator {
 	cc := ConstantCombinator{
 		Behavior: constantBehavior{
 			Filters: filterGroup,
