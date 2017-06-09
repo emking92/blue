@@ -62,8 +62,8 @@ var (
 )
 
 func init() {
-	immediateArgumentRegex, _ = regexp.Compile(`^-?\d+$`)
-	immediatePointerArgumentRegex, _ = regexp.Compile(`^\[-?\d+\]$`)
+	immediateArgumentRegex, _ = regexp.Compile(`^(-|0b|0x)?\d+$`)
+	immediatePointerArgumentRegex, _ = regexp.Compile(`^\[(-|0b|0x|0)?\d+\]$`)
 	registerArgumentRegex, _ = regexp.Compile(`^[a-z]x$`)
 	registerPointerArgumentRegex, _ = regexp.Compile(`^\[[a-z]x\]$`)
 	portArgumentRegex, _ = regexp.Compile(`^p_[a-z0-9]$`)
@@ -134,7 +134,7 @@ func (pgm programBuilder) parseInstructionArgument(argStr string, index int) (ar
 }
 
 func buildImmediateArgument(pgm *programBuilder, this argument) (ins Instruction, err error) {
-	argInt, err := strconv.Atoi(this.argStr)
+	argInt, err := strconv.ParseInt(this.argStr, 0, 32)
 	if err == strconv.ErrRange {
 		err = fmt.Errorf("immediate value out of int32 range: %s", this.argStr)
 		return
@@ -142,20 +142,22 @@ func buildImmediateArgument(pgm *programBuilder, this argument) (ins Instruction
 		panic(err)
 	}
 
+	argInt32 := int(argInt)
+
 	switch this.index {
 	case 0:
 		panic("Invalid argument")
 	case 1:
-		ins = Instruction{Imm: argInt, Cmux: 1}
+		ins = Instruction{Imm: argInt32, Cmux: 1}
 	case 2:
-		ins = Instruction{Imm: argInt, Bmux: 1}
+		ins = Instruction{Imm: argInt32, Bmux: 1}
 	}
 
 	return
 }
 
 func buildImmediatePointerArgument(pgm *programBuilder, this argument) (ins Instruction, err error) {
-	argInt, err := strconv.Atoi(strings.Trim(this.argStr, "[]"))
+	argInt, err := strconv.ParseInt(strings.Trim(this.argStr, "[]"), 0, 32)
 	if err == strconv.ErrRange {
 		err = fmt.Errorf("immediate pointer value out of int32 range: %s", this.argStr)
 		return
@@ -163,11 +165,13 @@ func buildImmediatePointerArgument(pgm *programBuilder, this argument) (ins Inst
 		panic(err)
 	}
 
+	argInt32 := int(argInt)
+
 	switch this.index {
 	case 0:
-		ins = Instruction{Addr: argInt, Wr: 1, Mar: 2, Mbr: 1}
+		ins = Instruction{Addr: argInt32, Wr: 1, Mar: 2, Mbr: 1}
 	case 1:
-		ins = Instruction{Addr: argInt, Rd: 1, Mar: 2, Amux: 1}
+		ins = Instruction{Addr: argInt32, Rd: 1, Mar: 2, Amux: 1}
 	case 2:
 		panic("Invalid argument")
 	}

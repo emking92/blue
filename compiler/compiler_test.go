@@ -19,6 +19,9 @@ func TestMOV(t *testing.T) {
 	MOV [ax], bx
 	MOV [cx], 104
 	MOV dx, [ex]
+	
+	MOV ax, 0x69
+	MOV bx, 0152
 	`
 
 	expected := []Instruction{
@@ -30,6 +33,8 @@ func TestMOV(t *testing.T) {
 		Instruction{B: 10, Wr: 1, Mar: 1, A: 11, Mbr: 1},
 		Instruction{B: 12, Wr: 1, Mar: 1, Cmux: 1, Imm: 104, Mbr: 1},
 		Instruction{Enc: 1, C: 13, B: 14, Rd: 1, Mar: 1, Amux: 1},
+		Instruction{Enc: 1, C: 10, Cmux: 1, Imm: 105},
+		Instruction{Enc: 1, C: 11, Cmux: 1, Imm: 106},
 	}
 
 	testBuild(t, source, expected)
