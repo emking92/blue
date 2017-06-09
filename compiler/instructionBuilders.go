@@ -43,14 +43,14 @@ var opBuildStrategies = map[string]instructionBuildStrategy{
 	"in": instructionBuildStrategy{
 		build: instructionBuilderIO,
 		typeSignatures: createSignatureGroup(
-			[]string{"xx", "pp"},
+			[]string{"xx", "p_p"},
 		),
 	},
 	"out": instructionBuildStrategy{
 		build: instructionBuilderIO,
 		typeSignatures: createSignatureGroup(
-			[]string{"pp", "xx"},
-			[]string{"pp", "123"},
+			[]string{"p_p", "xx"},
+			[]string{"p_p", "123"},
 		),
 	},
 	"add": aluInstructionBuildStrategy,
@@ -89,8 +89,6 @@ var (
 			[]string{"label", "xx", "123"},
 			[]string{"label", "[123]", "xx"},
 			[]string{"label", "[123]", "123"},
-			[]string{"label", "pp", "xx"},
-			[]string{"label", "pp", "123"},
 		),
 		build: instructionBuilderCondJMP,
 	}

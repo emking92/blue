@@ -160,9 +160,9 @@ func TestCondJMP(t *testing.T) {
 
 func TestIO(t *testing.T) {
 	source := `
-	IN ax, 1p
-	OUT 2p, bx
-	OUT 3p, 120
+	IN ax, p_1
+	OUT p_2, bx
+	OUT p_3, 120
 	`
 
 	expected := []Instruction{

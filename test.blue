@@ -7,10 +7,10 @@
 start: OUT 1p, $clearBuf
 
 MOV ax, $ball
-OUT 1p, ax
-OUT 1p, $flushBuf
+OUT p_1, ax
+OUT p_1, $flushBuf
 
-loop:IN bx, bp
+loop:IN bx, p_a
 MUL bx, bx, $down
 ADD ax, ax, bx
 

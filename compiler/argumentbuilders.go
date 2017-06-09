@@ -43,21 +43,21 @@ var (
 		"fx": 15,
 	}
 	portMap = map[string]int{
-		"1p": 1,
-		"2p": 2,
-		"3p": 3,
-		"4p": 4,
-		"5p": 5,
-		"6p": 6,
-		"7p": 7,
-		"8p": 8,
-		"9p": 9,
-		"ap": 10,
-		"bp": 11,
-		"cp": 12,
-		"dp": 13,
-		"ep": 14,
-		"fp": 15,
+		"p_1": 1,
+		"p_2": 2,
+		"p_3": 3,
+		"p_4": 4,
+		"p_5": 5,
+		"p_6": 6,
+		"p_7": 7,
+		"p_8": 8,
+		"p_9": 9,
+		"p_a": 10,
+		"p_b": 11,
+		"p_c": 12,
+		"p_d": 13,
+		"p_e": 14,
+		"p_f": 15,
 	}
 )
 
@@ -66,7 +66,7 @@ func init() {
 	immediatePointerArgumentRegex, _ = regexp.Compile(`^\[-?\d+\]$`)
 	registerArgumentRegex, _ = regexp.Compile(`^[a-z]x$`)
 	registerPointerArgumentRegex, _ = regexp.Compile(`^\[[a-z]x\]$`)
-	portArgumentRegex, _ = regexp.Compile(`^[a-z0-9]p$`)
+	portArgumentRegex, _ = regexp.Compile(`^p_[a-z0-9]$`)
 }
 
 func (arg argument) build(pgm *programBuilder) (ins Instruction) {
