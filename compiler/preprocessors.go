@@ -1,12 +1,8 @@
 package compiler
 
-import (
-	"strconv"
-)
-
 var precompilerStrategies = map[string]precompiler{
-	"const": precompiler{
-		precompile: precompileConstants,
+	"define": precompiler{
+		precompile: precompileMacros,
 		argCount:   2,
 	},
 }
@@ -16,20 +12,11 @@ type precompiler struct {
 	precompile func(pgm *programBuilder, op string, args []string)
 }
 
-func precompileConstants(pgm *programBuilder, op string, args []string) {
+func precompileMacros(pgm *programBuilder, op string, args []string) {
 	c := args[0]
 
-	_, err := strconv.ParseInt(args[1], 0, 32)
-	if err == strconv.ErrRange {
-		pgm.compileErrorString("const value out of int32 range: %s", args[1])
-		return
-	} else if err != nil {
-		pgm.compileErrorString("const value must be an integer: %s", args[1])
-		return
-	}
-
 	if pgm.variables.IsVarDefined(c) {
-		pgm.compileErrorString(`const variable already defined: "%s"`, c)
+		pgm.compileErrorString(`macro already defined: "%s"`, c)
 		return
 	}
 

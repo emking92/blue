@@ -181,19 +181,23 @@ func TestIO(t *testing.T) {
 	testBuild(t, source, expected)
 }
 
-func TestConst(t *testing.T) {
+func TestMacro(t *testing.T) {
 	source := `
-	#CONST foo, 200
-	#CONST bar, 201
-	#CONST fun, 202
+	#DEFINE foo, 200
+	#DEFINE bar, 201
+	#DEFINE fun, 202
+	#DEFINE cake, ecx
+	
 	MOV eax, foo
 	VAR test, bar
 	ADD ebx, test, fun
+	MOV cake, 101
 	`
 	expected := []Instruction{
 		Instruction{Enc: 1, C: 10, Cmux: 1, Imm: 200},
 		Instruction{Mbr: 1, Mar: 2, Wr: 1, Addr: 16, Cmux: 1, Imm: 201},
 		Instruction{Enc: 1, C: 11, Alu: 1, Addr: 16, Rd: 1, Mar: 2, Amux: 1, Bmux: 1, Imm: 202},
+		Instruction{Enc: 1, C: 12, Cmux: 1, Imm: 101},
 	}
 
 	testBuild(t, source, expected)
