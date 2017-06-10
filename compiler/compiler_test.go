@@ -11,17 +11,17 @@ import (
 
 func TestMOV(t *testing.T) {
 	source := `
-	MOV ax, bx
-	MOV cx, 101
-	MOV dx, [102]
-	MOV [103], ex
+	MOV eax, ebx
+	MOV ecx, 101
+	MOV edx, [102]
+	MOV [103], eex
 	MOV [105], 106
-	MOV [ax], bx
-	MOV [cx], 104
-	MOV dx, [ex]
+	MOV [eax], ebx
+	MOV [ecx], 104
+	MOV edx, [eex]
 	
-	MOV ax, 0x69
-	MOV bx, 0152
+	MOV eax, 0x69
+	MOV ebx, 0152
 	`
 
 	expected := []Instruction{
@@ -42,22 +42,22 @@ func TestMOV(t *testing.T) {
 
 func TestALU(t *testing.T) {
 	source := `
-	ADD ax, bx, cx
-	SUB ax, bx, cx
-	MUL ax, bx, cx
-	DIV ax, bx, cx
-	MOD ax, bx, cx
-	AND ax, bx, cx
-	OR ax, bx, cx
-	XOR ax, bx, cx
-	SAL ax, bx, cx
-	SAR ax, bx, cx
+	ADD eax, ebx, ecx
+	SUB eax, ebx, ecx
+	MUL eax, ebx, ecx
+	DIV eax, ebx, ecx
+	MOD eax, ebx, ecx
+	AND eax, ebx, ecx
+	OR eax, ebx, ecx
+	XOR eax, ebx, ecx
+	SAL eax, ebx, ecx
+	SAR eax, ebx, ecx
 	
-	ADD ax, bx, 123
-	MUL cx, [124], dx
-	DIV [125], ex, fx
-	MOD [126], ax, 127
-	AND bx, [128], 129
+	ADD eax, ebx, 123
+	MUL ecx, [124], edx
+	DIV [125], eex, efx
+	MOD [126], eax, 127
+	AND ebx, [128], 129
 	`
 
 	expected := []Instruction{
@@ -84,9 +84,9 @@ func TestALU(t *testing.T) {
 func TestVAR(t *testing.T) {
 	source := `
 	VAR foo, 123
-	VAR bar, ax
-	MOV ax, foo
-	MOV bx, &foo
+	VAR bar, eax
+	MOV eax, foo
+	MOV ebx, &foo
 	`
 
 	expected := []Instruction{
@@ -101,10 +101,10 @@ func TestVAR(t *testing.T) {
 
 func TestJMP(t *testing.T) {
 	source := `
-	foo:MOV ax, 0
+	foo:MOV eax, 0
 	
-	MOV bx, 0
-	bar:MOV cx, 0
+	MOV ebx, 0
+	bar:MOV ecx, 0
 	
 	JMP foo
 	JMP bar
@@ -123,22 +123,22 @@ func TestJMP(t *testing.T) {
 
 func TestCondJMP(t *testing.T) {
 	source := `
-	label0:MOV ax, 0
-	label1:MOV ax, 0
-	label2:MOV ax, 0
-	label3:MOV ax, 0
-	label4:MOV ax, 0
-	label5:MOV ax, 0
+	label0:MOV eax, 0
+	label1:MOV eax, 0
+	label2:MOV eax, 0
+	label3:MOV eax, 0
+	label4:MOV eax, 0
+	label5:MOV eax, 0
 	
-	JE label0, ax, bx
-	JNE label1, ax, bx
-	JL label2, ax, bx
-	JG label3, ax, bx
-	JLE label4, ax, bx
-	JGE label5, ax, bx
+	JE label0, eax, ebx
+	JNE label1, eax, ebx
+	JL label2, eax, ebx
+	JG label3, eax, ebx
+	JLE label4, eax, ebx
+	JGE label5, eax, ebx
 	
-	JE label0, ax, 123
-	JE label1, [111], bx
+	JE label0, eax, 123
+	JE label1, [111], ebx
 	JE label2, [222], 456
 	`
 
@@ -167,8 +167,8 @@ func TestCondJMP(t *testing.T) {
 
 func TestIO(t *testing.T) {
 	source := `
-	IN ax, p_1
-	OUT p_2, bx
+	IN eax, p_1
+	OUT p_2, ebx
 	OUT p_3, 120
 	`
 
@@ -186,9 +186,9 @@ func TestConst(t *testing.T) {
 	#CONST foo, 200
 	#CONST bar, 201
 	#CONST fun, 202
-	MOV ax, foo
+	MOV eax, foo
 	VAR test, bar
-	ADD bx, test, fun
+	ADD ebx, test, fun
 	`
 	expected := []Instruction{
 		Instruction{Enc: 1, C: 10, Cmux: 1, Imm: 200},

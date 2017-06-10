@@ -36,12 +36,12 @@ var (
 	registerReferenceArgumentRegex  *regexp.Regexp
 	portArgumentRegex               *regexp.Regexp
 	registerMap                     = map[string]byte{
-		"ax": 10,
-		"bx": 11,
-		"cx": 12,
-		"dx": 13,
-		"ex": 14,
-		"fx": 15,
+		"eax": 10,
+		"ebx": 11,
+		"ecx": 12,
+		"edx": 13,
+		"eex": 14,
+		"efx": 15,
 	}
 	portMap = map[string]int{
 		"p_1": 1,
@@ -66,8 +66,8 @@ func init() {
 	addressOfRegex, _ = regexp.Compile(`&\[(.+)\]`)
 	immediateArgumentRegex, _ = regexp.Compile(`^(-|0b|0x)?\d+$`)
 	immediateReferenceArgumentRegex, _ = regexp.Compile(`^\[(-|0b|0x|0)?\d+\]$`)
-	registerArgumentRegex, _ = regexp.Compile(`^[a-z]x$`)
-	registerReferenceArgumentRegex, _ = regexp.Compile(`^\[[a-z]x\]$`)
+	registerArgumentRegex, _ = regexp.Compile(`^e[a-z]x$`)
+	registerReferenceArgumentRegex, _ = regexp.Compile(`^\[e[a-z]x\]$`)
 	portArgumentRegex, _ = regexp.Compile(`^p_[a-z0-9]$`)
 }
 
