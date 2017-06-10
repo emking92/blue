@@ -19,22 +19,23 @@ type argument struct {
 type argumentGroup []argument
 
 const (
-	argumentTypeUndefined        = argumentType("undefined")
-	argumentTypeImmediate        = argumentType("immediate")
-	argumentTypeImmediatePointer = argumentType("immediate_pointer")
-	argumentTypeRegister         = argumentType("register")
-	argumentTypeRegisterPointer  = argumentType("register_pointer")
-	argumentTypePort             = argumentType("port")
-	argumentTypeLabel            = argumentType("label")
+	argumentTypeUndefined          = argumentType("undefined")
+	argumentTypeImmediate          = argumentType("immediate")
+	argumentTypeImmediateReference = argumentType("immediate_reference")
+	argumentTypeRegister           = argumentType("register")
+	argumentTypeRegisterReference  = argumentType("register_reference")
+	argumentTypePort               = argumentType("port")
+	argumentTypeLabel              = argumentType("label")
 )
 
 var (
-	immediateArgumentRegex        *regexp.Regexp
-	immediatePointerArgumentRegex *regexp.Regexp
-	registerArgumentRegex         *regexp.Regexp
-	registerPointerArgumentRegex  *regexp.Regexp
-	portArgumentRegex             *regexp.Regexp
-	registerMap                   = map[string]byte{
+	addressOfRegex                  *regexp.Regexp
+	immediateArgumentRegex          *regexp.Regexp
+	immediateReferenceArgumentRegex *regexp.Regexp
+	registerArgumentRegex           *regexp.Regexp
+	registerReferenceArgumentRegex  *regexp.Regexp
+	portArgumentRegex               *regexp.Regexp
+	registerMap                     = map[string]byte{
 		"ax": 10,
 		"bx": 11,
 		"cx": 12,
@@ -62,10 +63,11 @@ var (
 )
 
 func init() {
+	addressOfRegex, _ = regexp.Compile(`&\[(.+)\]`)
 	immediateArgumentRegex, _ = regexp.Compile(`^(-|0b|0x)?\d+$`)
-	immediatePointerArgumentRegex, _ = regexp.Compile(`^\[(-|0b|0x|0)?\d+\]$`)
+	immediateReferenceArgumentRegex, _ = regexp.Compile(`^\[(-|0b|0x|0)?\d+\]$`)
 	registerArgumentRegex, _ = regexp.Compile(`^[a-z]x$`)
-	registerPointerArgumentRegex, _ = regexp.Compile(`^\[[a-z]x\]$`)
+	registerReferenceArgumentRegex, _ = regexp.Compile(`^\[[a-z]x\]$`)
 	portArgumentRegex, _ = regexp.Compile(`^p_[a-z0-9]$`)
 }
 
@@ -97,6 +99,13 @@ func (group argumentGroup) String() string {
 }
 
 func (pgm programBuilder) parseInstructionArgument(argStr string, index int) (arg argument, err error) {
+	argStr = pgm.variables.Expand(argStr)
+
+	addressOf := addressOfRegex.FindStringSubmatch(argStr)
+	if addressOf != nil {
+		argStr = addressOf[1]
+	}
+
 	arg = argument{
 		argStr: argStr,
 		index:  index,
@@ -106,17 +115,17 @@ func (pgm programBuilder) parseInstructionArgument(argStr string, index int) (ar
 		arg.argType = argumentTypeImmediate
 		arg.buildFunc = buildImmediateArgument
 
-	} else if immediatePointerArgumentRegex.MatchString(argStr) {
-		arg.argType = argumentTypeImmediatePointer
-		arg.buildFunc = buildImmediatePointerArgument
+	} else if immediateReferenceArgumentRegex.MatchString(argStr) {
+		arg.argType = argumentTypeImmediateReference
+		arg.buildFunc = buildImmediateReferenceArgument
 
 	} else if registerArgumentRegex.MatchString(argStr) {
 		arg.argType = argumentTypeRegister
 		arg.buildFunc = buildRegisterArgument
 
-	} else if registerPointerArgumentRegex.MatchString(argStr) {
-		arg.argType = argumentTypeRegisterPointer
-		arg.buildFunc = buildRegisterPointerArgument
+	} else if registerReferenceArgumentRegex.MatchString(argStr) {
+		arg.argType = argumentTypeRegisterReference
+		arg.buildFunc = buildRegisterReferenceArgument
 
 	} else if portArgumentRegex.MatchString(argStr) {
 		arg.argType = argumentTypePort
@@ -156,10 +165,10 @@ func buildImmediateArgument(pgm *programBuilder, this argument) (ins Instruction
 	return
 }
 
-func buildImmediatePointerArgument(pgm *programBuilder, this argument) (ins Instruction, err error) {
+func buildImmediateReferenceArgument(pgm *programBuilder, this argument) (ins Instruction, err error) {
 	argInt, err := strconv.ParseInt(strings.Trim(this.argStr, "[]"), 0, 32)
 	if err == strconv.ErrRange {
-		err = fmt.Errorf("immediate pointer value out of int32 range: %s", this.argStr)
+		err = fmt.Errorf("reference address out of int32 range: %s", this.argStr)
 		return
 	} else if err != nil {
 		panic(err)
@@ -198,11 +207,11 @@ func buildRegisterArgument(pgm *programBuilder, this argument) (ins Instruction,
 	return
 }
 
-func buildRegisterPointerArgument(pgm *programBuilder, this argument) (ins Instruction, err error) {
+func buildRegisterReferenceArgument(pgm *programBuilder, this argument) (ins Instruction, err error) {
 	reg := strings.ToLower(strings.Trim(this.argStr, "[]"))
 	regByte, ok := registerMap[reg]
 	if !ok {
-		err = fmt.Errorf("undefined register pointer: %s", this.argStr)
+		err = fmt.Errorf("undefined register reference: %s", this.argStr)
 		return
 	}
 

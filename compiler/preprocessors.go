@@ -19,7 +19,7 @@ type precompiler struct {
 func precompileConstants(pgm *programBuilder, op string, args []string) {
 	c := args[0]
 
-	_, err := strconv.Atoi(args[1])
+	_, err := strconv.ParseInt(args[1], 0, 32)
 	if err == strconv.ErrRange {
 		pgm.compileErrorString("const value out of int32 range: %s", args[1])
 		return

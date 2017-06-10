@@ -156,7 +156,9 @@ func instructionBuilderVAR(pgm *programBuilder, op string, args []argument) Inst
 	}
 
 	address := pgm.allocateWord()
-	pgm.variables.CreateVariable(name, strconv.Itoa(address))
+	addressHex := strconv.FormatInt(int64(address), 16)
+
+	pgm.variables.CreateVariable(name, "[0x"+addressHex+"]")
 
 	toInstruction := Instruction{Wr: 1, Addr: address, Mar: 2, Mbr: 1}
 	var fromInstruction Instruction

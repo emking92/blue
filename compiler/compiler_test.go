@@ -85,13 +85,15 @@ func TestVAR(t *testing.T) {
 	source := `
 	VAR foo, 123
 	VAR bar, ax
-	MOV ax, [$foo]
+	MOV ax, foo
+	MOV bx, &foo
 	`
 
 	expected := []Instruction{
 		Instruction{Mbr: 1, Mar: 2, Wr: 1, Addr: 16, Cmux: 1, Imm: 123},
 		Instruction{Mbr: 1, Mar: 2, Wr: 1, Addr: 17, A: 10},
 		Instruction{Enc: 1, C: 10, Amux: 1, Mar: 2, Addr: 16, Rd: 1},
+		Instruction{Enc: 1, C: 11, Cmux: 1, Imm: 16},
 	}
 
 	testBuild(t, source, expected)
@@ -184,9 +186,9 @@ func TestConst(t *testing.T) {
 	#CONST foo, 200
 	#CONST bar, 201
 	#CONST fun, 202
-	MOV ax, $foo
-	VAR test, $bar
-	ADD bx, [$test], $fun
+	MOV ax, foo
+	VAR test, bar
+	ADD bx, test, fun
 	`
 	expected := []Instruction{
 		Instruction{Enc: 1, C: 10, Cmux: 1, Imm: 200},

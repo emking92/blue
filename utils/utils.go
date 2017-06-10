@@ -3,21 +3,20 @@ package utils
 import (
 	"fmt"
 	"regexp"
-	"strings"
 )
 
 type StrSubstititor map[string]func(string) string
 
 var (
-	varRegex *regexp.Regexp
+	tokenRegex *regexp.Regexp
 )
 
 func init() {
-	varRegex, _ = regexp.Compile(`(?:^|\W)\$([A-Za-z_][A-Za-z0-9_]*)(?:\b|$)`)
+	tokenRegex, _ = regexp.Compile(`\b([A-Za-z_][A-Za-z0-9_]*)\b`)
 }
 
 func (vr StrSubstititor) CreateVariable(v string, value string) {
-	reg := fmt.Sprintf(`\$%s\b`, v)
+	reg := fmt.Sprintf(`\b%s\b`, v)
 
 	varRegex, err := regexp.Compile(reg)
 	if err != nil {
@@ -29,26 +28,16 @@ func (vr StrSubstititor) CreateVariable(v string, value string) {
 	}
 }
 
-func (vr StrSubstititor) Expand(str string) (out string, err error) {
+func (vr StrSubstititor) Expand(str string) (out string) {
 	out = str
 
-	if !strings.ContainsRune(str, '$') {
-		return
-	}
-
-	matches := varRegex.FindAllStringSubmatch(str, -1)
-	if len(matches) == 0 {
-		err = fmt.Errorf(`invalid substitution "%s"`, str)
-		return
-	}
+	matches := tokenRegex.FindAllStringSubmatch(str, -1)
 
 	for _, m := range matches {
-		varFound := m[1]
-		expander, ok := vr[varFound]
-
+		token := m[1]
+		expander, ok := vr[token]
 		if !ok {
-			err = fmt.Errorf(`undefined var "%s"`, varFound)
-			return
+			continue
 		}
 
 		out = expander(out)

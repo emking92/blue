@@ -78,14 +78,7 @@ func (pgm *programBuilder) preprocess(parts preprocessorParts) {
 	args := make([]string, argCount)
 
 	for i := 0; i < argCount; i++ {
-		argStr, err := pgm.variables.Expand(parts.args[i])
-
-		if err != nil {
-			pgm.compileErrorString(err.Error())
-			continue
-		}
-
-		args[i] = argStr
+		args[i] = pgm.variables.Expand(parts.args[i])
 	}
 
 	strategy.precompile(pgm, op, args)
@@ -111,15 +104,9 @@ func (pgm *programBuilder) buildInstruction(parts codeParts) {
 
 	args := make(argumentGroup, argCount)
 
+	var err error
 	for i := 0; i < argCount; i++ {
-		argStr, err := pgm.variables.Expand(parts.args[i])
-
-		if err != nil {
-			pgm.compileErrorString(err.Error())
-			continue
-		}
-
-		args[i], err = pgm.parseInstructionArgument(argStr, i)
+		args[i], err = pgm.parseInstructionArgument(parts.args[i], i)
 		if err != nil {
 			pgm.compileErrorString(err.Error())
 			continue

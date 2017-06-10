@@ -85,11 +85,11 @@ func createSignatureGroup(signatureStringsGroups ...[]string) instructionSignatu
 			case "xx":
 				typ = argumentTypeRegister
 			case "[xx]":
-				typ = argumentTypeRegisterPointer
+				typ = argumentTypeRegisterReference
 			case "123":
 				typ = argumentTypeImmediate
 			case "[123]":
-				typ = argumentTypeImmediatePointer
+				typ = argumentTypeImmediateReference
 			case "p_p":
 				typ = argumentTypePort
 			case "label":
