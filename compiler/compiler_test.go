@@ -104,7 +104,8 @@ func TestJMP(t *testing.T) {
 	foo:MOV eax, 0
 	
 	MOV ebx, 0
-	bar:MOV ecx, 0
+	bar:
+	MOV ecx, 0
 	
 	JMP foo
 	JMP bar

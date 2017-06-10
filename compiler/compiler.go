@@ -22,11 +22,13 @@ var (
 	preprocesslineRegexIndexArg2 int
 	preprocesslineRegexIndexArg3 int
 
+	onlyLabelRegex *regexp.Regexp
+
 	ignoredLineRegex *regexp.Regexp
 )
 
 func init() { //                          (label        ):     (command  )   (arg1          )    ,   (arg2          )    ,   (arg3          )        ;comments
-	lineRegex, _ = regexp.Compile(`^\s*(?:(\w[\w\d+]*\s*):)?\s*([A-Za-z]+)\s+(-?[\w\d\[\]&]+)(\s*,\s*(-?[\w\d\[\]&]+)(\s*,\s*(-?[\w\d\[\]&]+))?)?\s*(;.*)?$`)
+	lineRegex, _ = regexp.Compile(`^\s*(?:(\w[\w\d+]*)\s*:)?\s*([A-Za-z]+)\s+(-?[\w\d\[\]&]+)(\s*,\s*(-?[\w\d\[\]&]+)(\s*,\s*(-?[\w\d\[\]&]+))?)?\s*(;.*)?$`)
 	lineRegexIndexLabel = 1
 	lineRegexIndexOp = 2
 	lineRegexIndexArg1 = 3
@@ -38,6 +40,8 @@ func init() { //                          (label        ):     (command  )   (ar
 	preprocesslineRegexIndexArg1 = 3
 	preprocesslineRegexIndexArg2 = 5
 	preprocesslineRegexIndexArg3 = 7
+
+	onlyLabelRegex, _ = regexp.Compile(`^\s*(\w[\w\d+]*)\s*:\s*(;.*)?$`)
 
 	ignoredLineRegex, _ = regexp.Compile(`^\s*(;.*)?$`)
 }
@@ -68,6 +72,8 @@ func BuildSource(source io.Reader) (instructions []Instruction, err error) {
 	lineNumber := 0
 	instructionIndex := -1
 
+	heldLabel := ""
+
 	for scanner.Scan() {
 		line := scanner.Text()
 		lineNumber++
@@ -77,6 +83,7 @@ func BuildSource(source io.Reader) (instructions []Instruction, err error) {
 			continue
 		}
 
+		//Check for a preprocessor line
 		matches := preprocessLineRegex.FindStringSubmatch(line)
 		if matches != nil {
 			parts := preprocessorParts{
@@ -90,6 +97,17 @@ func BuildSource(source io.Reader) (instructions []Instruction, err error) {
 			}
 
 			pgm.preprocess(parts)
+			continue
+		}
+
+		//Check for a label-only line
+		matches = onlyLabelRegex.FindStringSubmatch(line)
+		if matches != nil {
+			if heldLabel != "" {
+				pgm.compileErrorString("Multi-label statements not supported. %s and %s found", heldLabel, matches[1])
+			}
+
+			heldLabel = matches[1]
 			continue
 		}
 
@@ -113,6 +131,15 @@ func BuildSource(source io.Reader) (instructions []Instruction, err error) {
 		}
 		parsedCode = append(parsedCode, parts)
 
+		if heldLabel != "" {
+			if parts.label != "" {
+				pgm.compileErrorString("Multi-label statements not supported. %s and %s found", heldLabel, parts.label)
+			} else {
+				parts.label = heldLabel
+			}
+			heldLabel = ""
+		}
+
 		if len(parts.label) > 0 {
 			if _, ok := pgm.labels[strings.ToLower(parts.label)]; ok {
 				pgm.compileErrorString(`label already defined "%s"`, parts.label)
@@ -124,6 +151,10 @@ func BuildSource(source io.Reader) (instructions []Instruction, err error) {
 	}
 	if err := scanner.Err(); err != nil {
 		return nil, err
+	}
+
+	if heldLabel != "" {
+		pgm.compileErrorString("Labels must precede statements. %s is an orphan", heldLabel)
 	}
 
 	for _, codeLines := range parsedCode {
