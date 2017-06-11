@@ -7,7 +7,6 @@ import (
 	"compress/zlib"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"io"
 )
 
@@ -186,8 +185,6 @@ func (bp BlueprintFile) asBlueprintString() (outString string, err error) {
 	if err != nil {
 		return
 	}
-
-	fmt.Println(jsonBuffer.String())
 
 	var zippedBuffer bytes.Buffer
 	gzipper := zlib.NewWriter(&zippedBuffer)

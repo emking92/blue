@@ -64,8 +64,8 @@ var (
 
 func init() {
 	addressOfRegex, _ = regexp.Compile(`&\[(.+)\]`)
-	immediateArgumentRegex, _ = regexp.Compile(`^(-|0b|0x)?[\da-f]+$`)
-	immediateReferenceArgumentRegex, _ = regexp.Compile(`^\[(-|0b|0x|0)?[\da-f]+\]$`)
+	immediateArgumentRegex, _ = regexp.Compile(`^-?(0b|0x|0)?[\da-fA-F]+$`)
+	immediateReferenceArgumentRegex, _ = regexp.Compile(`^\[-?(0b|0x|0)?[\da-fA-F]+\]$`)
 	registerArgumentRegex, _ = regexp.Compile(`^e[a-z]x$`)
 	registerReferenceArgumentRegex, _ = regexp.Compile(`^\[e[a-z]x\]$`)
 	portArgumentRegex, _ = regexp.Compile(`^p_[a-z0-9]$`)
